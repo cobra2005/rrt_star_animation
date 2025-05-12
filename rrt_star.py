@@ -102,6 +102,26 @@ def rrt_star(start, goal, obstacles, map_bounds, max_iter=1000, step_size=0.5, s
 
     return nodes, best_goal_node
 
+# Hàm sinh chướng ngại vật ngẫu nhiên
+def generate_random_obstacles(num_obs, bounds, start, goal, min_radius=0.3, max_radius=1.0, padding=0.5):
+    obstacles = []
+    for _ in range(num_obs):
+        while True:
+            x = random.uniform(bounds[0] + padding, bounds[2] - padding)
+            y = random.uniform(bounds[1] + padding, bounds[3] - padding)
+            r = random.uniform(min_radius, max_radius)
+            
+            # Tránh đè lên đích và xuất phát
+            if (math.hypot(x - goal[0], y - goal[1]) < r + padding or
+                math.hypot(x - start[0], y - start[1]) < r + padding):
+                continue
+
+            # Tránh đè lên chướng ngại vật đã có
+            if all(math.hypot(x - ox, y - oy) > r + or_ + padding for ox, oy, or_ in obstacles):
+                obstacles.append((x, y, r))
+                break
+    return obstacles
+
 # Lấy mẫu ngẫu nhiên trong không gian cấu hình
 def sample_free(bounds):
     x = random.uniform(bounds[0], bounds[2])
@@ -168,12 +188,10 @@ if __name__ == '__main__':
     start = (0, 0)
     goal = (10, 10)
     map_bounds = (-1, -1, 11, 11)
-    # Chướng ngại vật hình tròn: (x, y, bán kính)
-    obstacles = [
-        (3, 5, 1.5),
-        (7, 5, 1.5),
-        (5, 8, 1.0)
-    ]
+
+     # Sinh ngẫu nhiên chướng ngại vật
+    num_obstacles = 10
+    obstacles = generate_random_obstacles(num_obstacles, map_bounds, start, goal)
 
     # Chạy thuật toán
     nodes, goal_node = rrt_star(start, goal, obstacles, map_bounds)
